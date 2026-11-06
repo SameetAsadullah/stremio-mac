@@ -13,6 +13,9 @@ All notable changes are listed here. The format follows
 - A window that shows stremio-web, with a transparent web view over a black background and a
   saved login.
 - A shell bridge that answers stremio-web's `INIT` message, handles its window methods and sends
-  window signals back. Player calls go to a `PlayerBackend` protocol that only logs for now.
+  window signals back. Player calls go to a `PlayerBackend` protocol.
 - External links open in the default browser.
+- An mpv player under the web view. It draws only when mpv has a new frame, decodes with
+  VideoToolbox and sends mpv's property changes, end of file and first frame to stremio-web.
+- A `-play` launch argument that plays a file or URL directly and logs draws every 10 seconds.
 - Unit tests and a `make test` step in CI.

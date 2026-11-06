@@ -16,8 +16,9 @@ in that case. A player that draws only when a new video frame arrives measured a
 ## Status
 
 Version 0.1.0 opens stremio-web in a window and answers its shell protocol. Login persists across
-restarts, and links that open a new window go to the default browser. The player is a stub that
-only logs, so video does not play yet. The streaming server is not built yet.
+restarts, and links that open a new window go to the default browser. An mpv player shows video
+under the web view and draws only when a new frame arrives. The streaming server is not built yet,
+so Stremio streams do not play yet.
 
 ## Requirements
 
@@ -35,6 +36,16 @@ make build
 
 `make open` generates the project and opens it in Xcode. `make run` builds and starts the app.
 `make test` runs the unit tests. `make lint` checks the code with `swift-format`.
+
+To play a local file or URL without the web player, start the app with `-play`:
+
+```bash
+build/DerivedData/Build/Products/Debug/Stremio.app/Contents/MacOS/Stremio -play ~/Movies/test.mp4
+```
+
+Every 10 seconds the app then logs the number of draws, the hardware decoder and the dropped
+frames. To see the log, run
+`log stream --predicate 'subsystem == "com.sameetasadullah.stremio-mac"'`.
 
 The app uses the LGPL build of [MPVKit](https://github.com/mpvkit/MPVKit), version 1.0.0.
 
