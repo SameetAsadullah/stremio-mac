@@ -9,3 +9,5 @@ Stremio/Resources/Info.plist
 xcuserdata/
 *.xcuserstate
 .DS_Store
+# Node.js runtime, downloaded by scripts/bootstrap.sh
+Vendor/

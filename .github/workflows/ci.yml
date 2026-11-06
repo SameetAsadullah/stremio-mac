@@ -32,6 +32,15 @@ jobs:
           path: build/DerivedData/SourcePackages
           key: spm-${{ hashFiles('project.yml') }}
 
+      - name: Cache Node.js
+        uses: actions/cache@v6
+        with:
+          path: Vendor/node
+          key: node-${{ hashFiles('scripts/bootstrap.sh') }}
+
+      - name: Bootstrap
+        run: make bootstrap
+
       - name: Build
         run: make build XCODEBUILD_FLAGS="CODE_SIGNING_ALLOWED=NO"
 

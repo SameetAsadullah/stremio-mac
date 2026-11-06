@@ -4,16 +4,19 @@ DERIVED ?= build/DerivedData
 APP     := $(DERIVED)/Build/Products/Debug/Stremio.app
 SOURCES := Stremio Tests
 
-.PHONY: generate build test format lint open run clean
+.PHONY: bootstrap generate build test format lint open run clean
+
+bootstrap:
+	scripts/bootstrap.sh
 
 generate:
 	xcodegen generate --quiet
 
-build: generate
+build: bootstrap generate
 	xcodebuild -project $(PROJECT) -scheme $(SCHEME) -configuration Debug \
 		-destination 'platform=macOS' -derivedDataPath $(DERIVED) $(XCODEBUILD_FLAGS) build
 
-test: generate
+test: bootstrap generate
 	xcodebuild test -project $(PROJECT) -scheme $(SCHEME) \
 		-destination 'platform=macOS' -derivedDataPath $(DERIVED) $(XCODEBUILD_FLAGS)
 
@@ -23,7 +26,7 @@ format:
 lint:
 	xcrun swift-format lint --strict --recursive $(SOURCES)
 
-open: generate
+open: bootstrap generate
 	open $(PROJECT)
 
 run: build
