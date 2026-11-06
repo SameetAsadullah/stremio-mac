@@ -36,14 +36,14 @@ final class ShellBridge: NSObject, WKScriptMessageHandler {
 
     private weak var webView: WKWebView?
     private let player: PlayerBackend
-    private let allowedHost: String
+    private let allowedOrigin: URL
     private let streamingServerURL: URL?
     private var observers: [NSObjectProtocol] = []
 
-    init(webView: WKWebView, player: PlayerBackend, allowedHost: String, streamingServerURL: URL?) {
+    init(webView: WKWebView, player: PlayerBackend, allowedOrigin: URL, streamingServerURL: URL?) {
         self.webView = webView
         self.player = player
-        self.allowedHost = allowedHost
+        self.allowedOrigin = allowedOrigin
         self.streamingServerURL = streamingServerURL
         super.init()
         player.onEvent = { [weak self] event in
@@ -69,7 +69,8 @@ final class ShellBridge: NSObject, WKScriptMessageHandler {
     }
 
     func userContentController(_ controller: WKUserContentController, didReceive message: WKScriptMessage) {
-        guard message.frameInfo.isMainFrame, message.frameInfo.securityOrigin.host == allowedHost,
+        guard message.frameInfo.isMainFrame, message.frameInfo.securityOrigin.host == allowedOrigin.host,
+            message.frameInfo.securityOrigin.port == allowedOrigin.port,
             let text = message.body as? String
         else {
             Log.shell.error("dropped a message from an untrusted frame")

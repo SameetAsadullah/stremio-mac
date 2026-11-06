@@ -1,16 +1,16 @@
 import AppKit
 import WebKit
 
-/// Hosts stremio-web. The web view is transparent, over the player's video view and a black
+/// Hosts stremio-web, served by `WebMirror`. The web view is transparent, over the player's video view and a black
 /// background.
 final class WebViewController: NSViewController {
-    static let url = URL(string: "https://web.stremio.com/")!
-
+    private let mirror: WebMirror
     private(set) var bridge: ShellBridge?
     private let webView: WKWebView
     private let videoView: NSView?
 
-    init(player: PlayerBackend, videoView: NSView?, streamingServerURL: URL) {
+    init(player: PlayerBackend, videoView: NSView?, streamingServerURL: URL, mirror: WebMirror) {
+        self.mirror = mirror
         self.videoView = videoView
         let configuration = WKWebViewConfiguration()
         configuration.websiteDataStore = .default()
@@ -19,7 +19,7 @@ final class WebViewController: NSViewController {
         super.init(nibName: nil, bundle: nil)
 
         let bridge = ShellBridge(
-            webView: webView, player: player, allowedHost: Self.url.host ?? "",
+            webView: webView, player: player, allowedOrigin: mirror.baseURL,
             streamingServerURL: streamingServerURL)
         self.bridge = bridge
         let controller = configuration.userContentController
@@ -54,7 +54,7 @@ final class WebViewController: NSViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        webView.load(URLRequest(url: Self.url))
+        webView.load(URLRequest(url: mirror.baseURL))
     }
 
     private func openExternally(_ url: URL?) {
@@ -69,9 +69,16 @@ extension WebViewController: WKNavigationDelegate, WKUIDelegate {
         _ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction,
         decisionHandler: @escaping (WKNavigationActionPolicy) -> Void
     ) {
-        let leavesApp =
-            navigationAction.navigationType == .linkActivated
-            && navigationAction.request.url?.host != Self.url.host
+        let url = navigationAction.request.url
+        let isLink = navigationAction.navigationType == .linkActivated
+        if isLink || navigationAction.targetFrame == nil, let url,
+            let local = WebMirror.localURL(for: url, port: mirror.port)
+        {
+            decisionHandler(.cancel)
+            webView.load(URLRequest(url: local))
+            return
+        }
+        let leavesApp = isLink && url?.host != mirror.baseURL.host
         if navigationAction.targetFrame == nil || leavesApp {
             openExternally(navigationAction.request.url)
             decisionHandler(.cancel)
@@ -84,7 +91,11 @@ extension WebViewController: WKNavigationDelegate, WKUIDelegate {
         _ webView: WKWebView, createWebViewWith configuration: WKWebViewConfiguration,
         for navigationAction: WKNavigationAction, windowFeatures: WKWindowFeatures
     ) -> WKWebView? {
-        openExternally(navigationAction.request.url)
+        if let url = navigationAction.request.url, let local = WebMirror.localURL(for: url, port: mirror.port) {
+            webView.load(URLRequest(url: local))
+        } else {
+            openExternally(navigationAction.request.url)
+        }
         return nil
     }
 
