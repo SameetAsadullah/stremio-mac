@@ -35,6 +35,22 @@ targets:
         CODE_SIGN_STYLE: Manual
         CODE_SIGN_IDENTITY: "-"
         ENABLE_HARDENED_RUNTIME: NO
+  StremioTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - Tests/StremioTests
+    dependencies:
+      - target: Stremio
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        PRODUCT_BUNDLE_IDENTIFIER: com.sameetasadullah.stremio-mac.tests
+        SWIFT_VERSION: "5.0"
+        CODE_SIGN_STYLE: Manual
+        CODE_SIGN_IDENTITY: "-"
+        TEST_HOST: $(BUILT_PRODUCTS_DIR)/Stremio.app/Contents/MacOS/Stremio
+        BUNDLE_LOADER: $(TEST_HOST)
 schemes:
   Stremio:
     build:
@@ -42,3 +58,7 @@ schemes:
         Stremio: all
     run:
       config: Debug
+    test:
+      config: Debug
+      targets:
+        - StremioTests

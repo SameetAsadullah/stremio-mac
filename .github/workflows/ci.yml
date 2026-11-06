@@ -34,3 +34,6 @@ jobs:
 
       - name: Build
         run: make build XCODEBUILD_FLAGS="CODE_SIGNING_ALLOWED=NO"
+
+      - name: Test
+        run: make test XCODEBUILD_FLAGS="CODE_SIGNING_ALLOWED=NO"
