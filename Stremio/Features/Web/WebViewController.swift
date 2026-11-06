@@ -57,6 +57,12 @@ final class WebViewController: NSViewController {
         webView.load(URLRequest(url: mirror.baseURL))
     }
 
+    // The player shortcuts are key events in the page, so the web view must be first responder.
+    override func viewDidAppear() {
+        super.viewDidAppear()
+        view.window?.makeFirstResponder(webView)
+    }
+
     private func openExternally(_ url: URL?) {
         guard let url, ["http", "https", "mailto", "stremio", "magnet"].contains(url.scheme?.lowercased() ?? "")
         else { return }

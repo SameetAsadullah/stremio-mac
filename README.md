@@ -20,6 +20,19 @@ restarts, and links that open a new window go to the default browser. An mpv pla
 under the web view and draws only when a new frame arrives. The app also runs Stremio's streaming server
 as a child `node` process, or uses the one that already answers on port 11470. Torrent streams play through the server and mpv.
 
+Mac features:
+
+- The display stays awake while a video plays and is not paused. Playback state comes from mpv's
+  `pause` and `idle-active` properties, so nothing polls or runs on a timer.
+- Now Playing and the media keys work: the title, artist, artwork, duration and position show in
+  Control Center. Play, pause, play/pause, next and seek work from the keyboard and Control
+  Center. The keys belong to the app only while a file is loaded.
+- Full screen is native macOS full screen. The web's full screen button, F and Esc stay in sync
+  with it, and minimizing the window pauses the video when stremio-web's "pause on minimize"
+  setting is on.
+- Closing the window quits the app, so the streaming server always ends with it.
+- `stremio://` and `magnet:` links are not registered, so they keep opening the official app.
+
 ## Requirements
 
 - macOS 14 or later

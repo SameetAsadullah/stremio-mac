@@ -33,3 +33,5 @@ All notable changes are listed here. The format follows
   stremio-web as `media-key` signals. Seeking from Now Playing goes to mpv.
 - An app icon, taken from the iOS app and cut to the macOS shape. Closing the window still quits the
   app, so the streaming server and node always end with it.
+- The web view is the first responder, so the player shortcuts (space, arrows, F, Esc) reach
+  stremio-web.
