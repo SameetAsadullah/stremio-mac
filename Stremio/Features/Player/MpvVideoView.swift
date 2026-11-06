@@ -42,6 +42,7 @@ final class MpvVideoLayer: CAOpenGLLayer {
     private var context: CGLContextObj?
     private var render: OpaquePointer?
     private var shownLoadId: Int?
+    private var draws = 0
 
     /// Without a configured video output the layer clears to black, so no old frame stays.
     var videoConfigured = false {
@@ -72,6 +73,11 @@ final class MpvVideoLayer: CAOpenGLLayer {
     func showVideo(loadId: Int) {
         shownLoadId = loadId
         setNeedsDisplay()
+    }
+
+    func takeDrawCount() -> Int {
+        defer { draws = 0 }
+        return draws
     }
 
     func freeRenderContext() {
@@ -152,6 +158,7 @@ final class MpvVideoLayer: CAOpenGLLayer {
         inCGLContext context: CGLContextObj, pixelFormat: CGLPixelFormatObj, forLayerTime time: CFTimeInterval,
         displayTime: UnsafePointer<CVTimeStamp>?
     ) {
+        draws += 1
         if let render, videoConfigured {
             renderFrame(render)
             if let id = shownLoadId {

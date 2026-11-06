@@ -118,6 +118,18 @@ final class MpvPlayerBackend: PlayerBackend {
         }
     }
 
+    func logStats(draws: Int, seconds: Int) {
+        queue.async { [self] in
+            guard !terminated else { return }
+            let hwdec = string("hwdec-current") ?? "none"
+            let dropped = string("frame-drop-count") ?? "0"
+            let delayed = string("vo-delayed-frame-count") ?? "0"
+            Log.player.info(
+                "\(draws, privacy: .public) draws in \(seconds, privacy: .public) s, hwdec \(hwdec, privacy: .public), dropped \(dropped, privacy: .public), delayed \(delayed, privacy: .public)"
+            )
+        }
+    }
+
     /// libmpv requires the render context to be freed, on its GL thread, before the core is destroyed.
     func shutdown() {
         // Freeing the render context ends a playing file with an error the page must not get.
@@ -150,6 +162,12 @@ final class MpvPlayerBackend: PlayerBackend {
         var argv: [UnsafePointer<CChar>?] = pointers.map { UnsafePointer($0) } + [nil]
         let status = mpv_command(handle, &argv)
         if status < 0 { logError(status, args[0]) }
+    }
+
+    private func string(_ name: String) -> String? {
+        guard let value = mpv_get_property_string(handle, name) else { return nil }
+        defer { mpv_free(value) }
+        return String(cString: value)
     }
 
     private func flag(_ name: String) -> Bool {
