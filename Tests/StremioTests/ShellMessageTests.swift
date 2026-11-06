@@ -61,6 +61,13 @@ final class ShellMessageTests: XCTestCase {
                 + #"[1,"nativeAssSubtitles","","true"]]}},"id":0,"type":3}"#)
     }
 
+    func testDefaultPropertiesHaveNoMpvConfig() {
+        let names = ShellBridge.properties(streamingServerURL: URL(string: "http://127.0.0.1:11470/")).map(\.name)
+        XCTAssertTrue(names.contains("shellVersion"))
+        XCTAssertTrue(names.contains("streamingServerUrl"))
+        XCTAssertFalse(names.contains("mpvConfig"))
+    }
+
     func testEncodesSignal() {
         XCTAssertEqual(
             ShellMessage.signal("win-state-changed", .object(["state": .number(9)])),
