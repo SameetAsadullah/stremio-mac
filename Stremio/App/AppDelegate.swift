@@ -5,6 +5,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var mpv: MpvPlayerBackend?
     private let server = StreamingServer()
     private let mirror = WebMirror()
+    private let wakeLock = DisplayWakeLock()
     private var statsTimer: Timer?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -29,6 +30,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         window.makeKeyAndOrderFront(nil)
         self.window = window
         self.mpv = mpv
+        mpv?.onPlayback = { [weak self] snapshot in
+            DispatchQueue.main.async { self?.wakeLock.update(snapshot) }
+        }
         NSApp.activate(ignoringOtherApps: true)
         if let mpv, let videoView, let target = UserDefaults.standard.string(forKey: "play") {
             play(target, mpv, videoView)
@@ -46,6 +50,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationWillTerminate(_ notification: Notification) {
         mpv?.shutdown()
+        wakeLock.set(held: false)
         server.stop()
         mirror.stop()
     }

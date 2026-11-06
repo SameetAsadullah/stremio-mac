@@ -26,3 +26,5 @@ All notable changes are listed here. The format follows
   a server that already runs on port 11470, keeps its data and log outside the official app's
   folders, restarts after a crash and ends with the app.
 - `THIRD_PARTY_NOTICES.md`.
+- The display stays awake while a video plays. The app releases the wake lock on pause, stop, end of
+  file and quit.

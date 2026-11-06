@@ -5,6 +5,8 @@ import Libmpv
 /// renders, never waits for the mpv core (see "Threading" in libmpv's render.h).
 final class MpvPlayerBackend: PlayerBackend {
     var onEvent: ((PlayerEvent) -> Void)?
+    /// Called on the mpv queue when the snapshot changes.
+    var onPlayback: ((PlaybackSnapshot) -> Void)?
     weak var videoLayer: MpvVideoLayer?
     let handle: OpaquePointer
 
@@ -16,10 +18,12 @@ final class MpvPlayerBackend: PlayerBackend {
     private var observed: Set<String> = []
     private var loadId = 0
     private var readyLoadId: Int?
+    private var lastSnapshot: PlaybackSnapshot?
 
     private enum Reply: UInt64 {
         case web = 1
         case videoConfigured = 2
+        case playback = 3
     }
 
     init?() {
@@ -45,6 +49,8 @@ final class MpvPlayerBackend: PlayerBackend {
             return nil
         }
         mpv_observe_property(handle, Reply.videoConfigured.rawValue, "vo-configured", MPV_FORMAT_FLAG)
+        mpv_observe_property(handle, Reply.playback.rawValue, "pause", MPV_FORMAT_FLAG)
+        mpv_observe_property(handle, Reply.playback.rawValue, "idle-active", MPV_FORMAT_FLAG)
         mpv_set_wakeup_callback(
             handle,
             { context in
@@ -133,7 +139,10 @@ final class MpvPlayerBackend: PlayerBackend {
     /// libmpv requires the render context to be freed, on its GL thread, before the core is destroyed.
     func shutdown() {
         // Freeing the render context ends a playing file with an error the page must not get.
-        queue.async { [self] in onEvent = nil }
+        queue.async { [self] in
+            onEvent = nil
+            onPlayback = nil
+        }
         videoLayer?.freeRenderContext()
         queue.sync { [self] in
             guard !terminated else { return }
@@ -225,11 +234,22 @@ final class MpvPlayerBackend: PlayerBackend {
             DispatchQueue.main.async { [weak self] in self?.videoLayer?.videoConfigured = configured }
             return
         }
+        if reply == Reply.playback.rawValue {
+            reportPlayback()
+            return
+        }
         var data = JSONValue.null
         if property.format == MPV_FORMAT_NODE, let node = property.data?.assumingMemoryBound(to: mpv_node.self) {
             data = JSONValue(node.pointee)
         }
         emit(.propertyChanged(name: String(cString: property.name), data: data))
+    }
+
+    private func reportPlayback() {
+        let snapshot = PlaybackSnapshot(loaded: !flag("idle-active"), paused: flag("pause"))
+        guard snapshot != lastSnapshot else { return }
+        lastSnapshot = snapshot
+        onPlayback?(snapshot)
     }
 
     // ShellVideo shows the video, and hides its own loading background, once the load's
