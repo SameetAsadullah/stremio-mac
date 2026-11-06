@@ -17,22 +17,27 @@ in that case. A player that draws only when a new video frame arrives measured a
 
 Version 0.1.0 opens stremio-web in a window and answers its shell protocol. Login persists across
 restarts, and links that open a new window go to the default browser. An mpv player shows video
-under the web view and draws only when a new frame arrives. The streaming server is not built yet,
-so Stremio streams do not play yet.
+under the web view and draws only when a new frame arrives. The app also runs Stremio's streaming server
+as a child `node` process, or uses the one that already answers on port 11470. The web app cannot
+call that server yet (see [Known problem](#known-problem)), so Stremio streams do not play yet.
 
 ## Requirements
 
 - macOS 14 or later
 - Xcode 26 or later
 - [XcodeGen](https://github.com/yonaskolb/XcodeGen)
+- Apple Silicon. The bundled Node.js binary is arm64 only.
 
 ## Build
 
 ```bash
 brew install xcodegen
-make generate
+make bootstrap
 make build
 ```
+
+`make bootstrap` downloads Node.js 24.22.2 from nodejs.org into `Vendor/node/` and checks its
+SHA-256. `make build` and `make test` run it when needed.
 
 `make open` generates the project and opens it in Xcode. `make run` builds and starts the app.
 `make test` runs the unit tests. `make lint` checks the code with `swift-format`.
@@ -48,6 +53,29 @@ frames. To see the log, run
 `log stream --predicate 'subsystem == "com.sameetasadullah.stremio-mac"'`.
 
 The app uses the LGPL build of [MPVKit](https://github.com/mpvkit/MPVKit), version 1.0.0.
+
+## Streaming server
+
+At first launch the app downloads Stremio's `server.js` 4.21.1 from `dl.strem.io` to
+`~/Library/Application Support/com.sameetasadullah.stremio-mac/` and keeps it only when its
+SHA-256 matches. `server.js` is proprietary, so it is never in this repository or in the app.
+The download does not block the window.
+
+- If a Stremio server already answers on `http://127.0.0.1:11470/settings`, such as the official
+  app's, the app uses it and starts none.
+- Otherwise the app starts the bundled `node` with a preload script. The preload binds the HTTP
+  ports to `127.0.0.1` and ends node when the app's stdin pipe closes, so node does not outlive
+  the app, even after a crash or `kill -9`. If node dies, the app restarts it twice, after 1 s
+  and 5 s.
+- Data is in `~/Library/Application Support/com.sameetasadullah.stremio-mac/server`. The app
+  never writes to the official app's `stremio-server` folder. The log is
+  `~/Library/Logs/com.sameetasadullah.stremio-mac/server.log`.
+- `-server-port 11471` moves the server to another port, to test next to the official app.
+
+### Known problem
+
+`web.stremio.com` is an HTTPS page, and WebKit blocks it from calling `http://127.0.0.1:11470`
+(mixed content). Until the web app is loaded from a local origin, it cannot reach the server.
 
 ## License
 

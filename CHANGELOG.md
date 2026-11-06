@@ -19,3 +19,9 @@ All notable changes are listed here. The format follows
   VideoToolbox and sends mpv's property changes, end of file and first frame to stremio-web.
 - A `-play` launch argument that plays a file or URL directly and logs draws every 10 seconds.
 - Unit tests and a `make test` step in CI.
+- A bundled Node.js 24.22.2 (Apple Silicon only), downloaded and checked by
+  `scripts/bootstrap.sh` and signed in the app.
+- A streaming server that runs Stremio's `server.js` as a child node process on `127.0.0.1`, uses
+  a server that already runs on port 11470, keeps its data and log outside the official app's
+  folders, restarts after a crash and ends with the app.
+- `THIRD_PARTY_NOTICES.md`.
