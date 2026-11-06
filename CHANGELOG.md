@@ -28,3 +28,6 @@ All notable changes are listed here. The format follows
 - `THIRD_PARTY_NOTICES.md`.
 - The display stays awake while a video plays. The app releases the wake lock on pause, stop, end of
   file and quit.
+- Now Playing and media keys. The app sets the title, artist, artwork, duration and position from
+  the web's `media.metadata` method and mpv, and sends play, pause, play/pause and next-track keys to
+  stremio-web as `media-key` signals. Seeking from Now Playing goes to mpv.

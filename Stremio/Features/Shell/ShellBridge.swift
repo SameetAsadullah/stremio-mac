@@ -38,6 +38,7 @@ final class ShellBridge: NSObject, WKScriptMessageHandler {
     private let player: PlayerBackend
     private let allowedOrigin: URL
     private let streamingServerURL: URL?
+    var onMediaMetadata: ((MediaMetadata) -> Void)?
     private var observers: [NSObjectProtocol] = []
 
     init(webView: WKWebView, player: PlayerBackend, allowedOrigin: URL, streamingServerURL: URL?) {
@@ -57,6 +58,10 @@ final class ShellBridge: NSObject, WKScriptMessageHandler {
 
     func send(signal name: String, arg: JSONValue = .null) {
         deliver(ShellMessage.signal(name, arg))
+    }
+
+    func send(_ key: MediaKey) {
+        deliver(key.signal)
     }
 
     private func deliver(_ json: String) {
@@ -110,6 +115,11 @@ final class ShellBridge: NSObject, WKScriptMessageHandler {
             player.observeProperty(name)
         case .mpvSetGPUVideoProcessing(let enabled):
             player.setGPUVideoProcessing(enabled)
+        case .mediaMetadata(let metadata):
+            onMediaMetadata?(metadata)
+        case .mediaStatus:
+            // The state comes from mpv's own pause property, which the app already follows.
+            break
         case .unsupported(let name, _):
             Log.shell.debug("unsupported method \(name, privacy: .public)")
         }

@@ -15,7 +15,9 @@ enum ShellMethod: Equatable {
     case mpvSetProperty(name: String, value: JSONValue)
     case mpvObserveProperty(String)
     case mpvSetGPUVideoProcessing(Bool)
-    /// Methods the app does not implement, such as `media.status` and `discord-*`.
+    case mediaMetadata(MediaMetadata)
+    case mediaStatus(paused: Bool)
+    /// Methods the app does not implement, such as `discord-*`.
     case unsupported(name: String, args: [JSONValue])
 }
 
@@ -75,6 +77,12 @@ enum ShellMessage {
         case "mpv-set-gpu-video-processing":
             guard let enabled = args.first?.boolValue else { throw malformed(name) }
             return .mpvSetGPUVideoProcessing(enabled)
+        case "media.metadata":
+            guard let metadata = MediaMetadata(args.first) else { throw malformed(name) }
+            return .mediaMetadata(metadata)
+        case "media.status":
+            guard let paused = args.first?.objectValue?["paused"]?.boolValue else { throw malformed(name) }
+            return .mediaStatus(paused: paused)
         default:
             return .unsupported(name: name, args: args)
         }

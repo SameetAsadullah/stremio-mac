@@ -36,10 +36,30 @@ final class ShellMessageTests: XCTestCase {
             .invoke(.mpvSetGPUVideoProcessing(true)))
     }
 
-    func testKeepsUnknownMethods() throws {
+    func testParsesMediaMethods() throws {
+        let metadata =
+            #"{"id":0,"type":6,"args":["media.metadata",{"title":"Pilot (1x1)","artist":"Show","artUrl":"https://x/logo.png"}]}"#
+        XCTAssertEqual(
+            try ShellMessage.parse(metadata),
+            .invoke(
+                .mediaMetadata(
+                    try XCTUnwrap(
+                        MediaMetadata(
+                            .object([
+                                "title": .string("Pilot (1x1)"), "artist": .string("Show"),
+                                "artUrl": .string("https://x/logo.png"),
+                            ]))))))
         XCTAssertEqual(
             try ShellMessage.parse(#"{"id":0,"type":6,"args":["media.status",{"paused":true}]}"#),
-            .invoke(.unsupported(name: "media.status", args: [try json(#"{"paused":true}"#)])))
+            .invoke(.mediaStatus(paused: true)))
+        XCTAssertThrowsError(try ShellMessage.parse(#"{"id":0,"type":6,"args":["media.status"]}"#))
+        XCTAssertThrowsError(try ShellMessage.parse(#"{"id":0,"type":6,"args":["media.metadata",{}]}"#))
+    }
+
+    func testKeepsUnknownMethods() throws {
+        XCTAssertEqual(
+            try ShellMessage.parse(#"{"id":0,"type":6,"args":["discord-update",{"a":1}]}"#),
+            .invoke(.unsupported(name: "discord-update", args: [try json(#"{"a":1}"#)])))
     }
 
     func testRejectsBadMessages() {

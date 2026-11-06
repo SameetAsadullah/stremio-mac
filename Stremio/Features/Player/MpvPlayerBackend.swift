@@ -51,6 +51,8 @@ final class MpvPlayerBackend: PlayerBackend {
         mpv_observe_property(handle, Reply.videoConfigured.rawValue, "vo-configured", MPV_FORMAT_FLAG)
         mpv_observe_property(handle, Reply.playback.rawValue, "pause", MPV_FORMAT_FLAG)
         mpv_observe_property(handle, Reply.playback.rawValue, "idle-active", MPV_FORMAT_FLAG)
+        mpv_observe_property(handle, Reply.playback.rawValue, "duration", MPV_FORMAT_DOUBLE)
+        mpv_observe_property(handle, Reply.playback.rawValue, "speed", MPV_FORMAT_DOUBLE)
         mpv_set_wakeup_callback(
             handle,
             { context in
@@ -124,6 +126,14 @@ final class MpvPlayerBackend: PlayerBackend {
         }
     }
 
+    /// A seek from the system's Now Playing controls. The web's own commands cannot seek.
+    func seek(to seconds: Double) {
+        queue.async { [self] in
+            guard !terminated, renderReady else { return }
+            run(["seek", String(seconds), "absolute"])
+        }
+    }
+
     func logStats(draws: Int, seconds: Int) {
         queue.async { [self] in
             guard !terminated else { return }
@@ -179,6 +189,11 @@ final class MpvPlayerBackend: PlayerBackend {
         return String(cString: value)
     }
 
+    private func double(_ name: String) -> Double? {
+        var value = 0.0
+        return mpv_get_property(handle, name, MPV_FORMAT_DOUBLE, &value) >= 0 && value.isFinite ? value : nil
+    }
+
     private func flag(_ name: String) -> Bool {
         var value: Int32 = 0
         return mpv_get_property(handle, name, MPV_FORMAT_FLAG, &value) >= 0 && value != 0
@@ -215,6 +230,7 @@ final class MpvPlayerBackend: PlayerBackend {
             emit(MpvEndFile.event(reason: end.reason, error: end.error))
         case MPV_EVENT_PLAYBACK_RESTART:
             playbackRestarted()
+            reportPlayback()
         case MPV_EVENT_LOG_MESSAGE:
             guard let message = event.data?.assumingMemoryBound(to: mpv_event_log_message.self).pointee else {
                 return
@@ -246,7 +262,9 @@ final class MpvPlayerBackend: PlayerBackend {
     }
 
     private func reportPlayback() {
-        let snapshot = PlaybackSnapshot(loaded: !flag("idle-active"), paused: flag("pause"))
+        let snapshot = PlaybackSnapshot(
+            loaded: !flag("idle-active"), paused: flag("pause"), elapsed: double("time-pos") ?? 0,
+            duration: double("duration") ?? 0, speed: double("speed") ?? 1)
         guard snapshot != lastSnapshot else { return }
         lastSnapshot = snapshot
         onPlayback?(snapshot)
