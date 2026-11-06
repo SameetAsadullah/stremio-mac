@@ -35,6 +35,7 @@ targets:
         CODE_SIGN_STYLE: Manual
         CODE_SIGN_IDENTITY: "-"
         ENABLE_HARDENED_RUNTIME: NO
+        OTHER_SWIFT_FLAGS: "$(inherited) -Xcc -DGL_SILENCE_DEPRECATION"
   StremioTests:
     type: bundle.unit-test
     platform: macOS

@@ -1,16 +1,18 @@
 import AppKit
 import WebKit
 
-/// Hosts stremio-web. The web view is transparent over a black view because the player's video
-/// layer sits underneath it.
+/// Hosts stremio-web. The web view is transparent, over the player's video view and a black
+/// background.
 final class WebViewController: NSViewController {
     static let url = URL(string: "https://web.stremio.com/")!
     static let streamingServerURL = URL(string: "http://127.0.0.1:11470/")
 
     private(set) var bridge: ShellBridge?
     private let webView: WKWebView
+    private let videoView: NSView?
 
-    init(player: PlayerBackend) {
+    init(player: PlayerBackend, videoView: NSView?) {
+        self.videoView = videoView
         let configuration = WKWebViewConfiguration()
         configuration.websiteDataStore = .default()
         configuration.mediaTypesRequiringUserActionForPlayback = []
@@ -40,6 +42,11 @@ final class WebViewController: NSViewController {
         let container = NSView()
         container.wantsLayer = true
         container.layer?.backgroundColor = NSColor.black.cgColor
+        if let videoView {
+            videoView.frame = container.bounds
+            videoView.autoresizingMask = [.width, .height]
+            container.addSubview(videoView)
+        }
         webView.frame = container.bounds
         webView.autoresizingMask = [.width, .height]
         container.addSubview(webView)
