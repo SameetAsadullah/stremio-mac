@@ -5,13 +5,12 @@ import WebKit
 /// background.
 final class WebViewController: NSViewController {
     static let url = URL(string: "https://web.stremio.com/")!
-    static let streamingServerURL = URL(string: "http://127.0.0.1:11470/")
 
     private(set) var bridge: ShellBridge?
     private let webView: WKWebView
     private let videoView: NSView?
 
-    init(player: PlayerBackend, videoView: NSView?) {
+    init(player: PlayerBackend, videoView: NSView?, streamingServerURL: URL) {
         self.videoView = videoView
         let configuration = WKWebViewConfiguration()
         configuration.websiteDataStore = .default()
@@ -21,7 +20,7 @@ final class WebViewController: NSViewController {
 
         let bridge = ShellBridge(
             webView: webView, player: player, allowedHost: Self.url.host ?? "",
-            streamingServerURL: Self.streamingServerURL)
+            streamingServerURL: streamingServerURL)
         self.bridge = bridge
         let controller = configuration.userContentController
         controller.add(WeakScriptHandler(bridge), name: ShellBridge.handlerName)
