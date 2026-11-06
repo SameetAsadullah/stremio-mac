@@ -11,7 +11,7 @@ generate:
 
 build: generate
 	xcodebuild -project $(PROJECT) -scheme $(SCHEME) -configuration Debug \
-		-destination 'platform=macOS' -derivedDataPath $(DERIVED) build
+		-destination 'platform=macOS' -derivedDataPath $(DERIVED) $(XCODEBUILD_FLAGS) build
 
 format:
 	xcrun swift-format format --in-place --recursive $(SOURCES)
