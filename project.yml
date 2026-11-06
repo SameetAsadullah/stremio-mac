@@ -1,0 +1,44 @@
+name: Stremio
+options:
+  bundleIdPrefix: com.sameetasadullah
+  deploymentTarget:
+    macOS: "14.0"
+  createIntermediateGroups: true
+packages:
+  MPVKit:
+    url: https://github.com/mpvkit/MPVKit
+    exactVersion: 1.0.0
+targets:
+  Stremio:
+    type: application
+    platform: macOS
+    sources:
+      - Stremio
+    info:
+      path: Stremio/Resources/Info.plist
+      properties:
+        CFBundleDisplayName: Stremio
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        LSMinimumSystemVersion: $(MACOSX_DEPLOYMENT_TARGET)
+        NSPrincipalClass: NSApplication
+    dependencies:
+      - package: MPVKit
+        product: MPVKit
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.sameetasadullah.stremio-mac
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        GENERATE_INFOPLIST_FILE: NO
+        SWIFT_VERSION: "5.0"
+        CODE_SIGN_STYLE: Manual
+        CODE_SIGN_IDENTITY: "-"
+        ENABLE_HARDENED_RUNTIME: NO
+schemes:
+  Stremio:
+    build:
+      targets:
+        Stremio: all
+    run:
+      config: Debug
