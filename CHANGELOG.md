@@ -31,3 +31,5 @@ All notable changes are listed here. The format follows
 - Now Playing and media keys. The app sets the title, artist, artwork, duration and position from
   the web's `media.metadata` method and mpv, and sends play, pause, play/pause and next-track keys to
   stremio-web as `media-key` signals. Seeking from Now Playing goes to mpv.
+- An app icon, taken from the iOS app and cut to the macOS shape. Closing the window still quits the
+  app, so the streaming server and node always end with it.
