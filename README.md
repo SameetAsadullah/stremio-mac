@@ -7,8 +7,10 @@
 A personal Mac app that runs [stremio-web](https://github.com/Stremio/stremio-web) with an
 [mpv](https://mpv.io) player.
 
-The goal is lower battery use in fullscreen at 120 Hz. The official Stremio app draws about 16 W
-in that case. A player that draws only when a new video frame arrives measured about 5.5 W.
+The goal is lower battery use in fullscreen at 120 Hz. Measured on battery with a fullscreen
+1080p24 video at 120 Hz through the real web player, this app draws 5.81 W and an idle desktop
+draws 4.24 W. The official Stremio app draws 14 to 16 W in the same setup. The app draws 24 times
+per second and decodes in hardware with VideoToolbox.
 
 > [!IMPORTANT]
 > This is an unofficial, personal project. It is not affiliated with or endorsed by Stremio.
@@ -39,6 +41,34 @@ Mac features:
 - Xcode 26 or later
 - [XcodeGen](https://github.com/yonaskolb/XcodeGen)
 - Apple Silicon. The bundled Node.js binary is arm64 only.
+
+## Install
+
+Build the app from source and copy it to `~/Applications`:
+
+```bash
+brew install xcodegen
+make bootstrap
+make install
+```
+
+`make install` builds a Release app, copies it to `~/Applications/Stremio.app` and checks the
+signature with `codesign --verify --deep --strict`. It never touches `/Applications/Stremio.app`
+and refuses to replace an app in `~/Applications` that has another bundle identifier.
+
+`make dist` builds a Release app and writes `build/Stremio-mac-<version>.zip`. The zip is ad-hoc
+signed and not notarized. On another Mac, remove the quarantine flag after you unzip it:
+
+```bash
+xattr -dr com.apple.quarantine ~/Applications/Stremio.app
+```
+
+Or right-click the app and choose Open. The app runs on Apple Silicon only, with macOS 14 or
+later.
+
+The app runs next to the official app. It has its own data folder, uses a server of the official
+app that already runs and does not register `stremio://` links. At first launch it downloads
+`server.js` once. The Stremio login is separate from the official app, so sign in again.
 
 ## Build
 
