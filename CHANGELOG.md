@@ -4,7 +4,7 @@ All notable changes are listed here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [0.1.0] - 2026-11-06
 
 ### Added
 
@@ -35,3 +35,10 @@ All notable changes are listed here. The format follows
   app, so the streaming server and node always end with it.
 - The web view is the first responder, so the player shortcuts (space, arrows, F, Esc) reach
   stremio-web.
+- `make install` builds a Release app and copies it to `~/Applications/Stremio.app`. It never
+  touches the official app.
+- `make dist` writes the Release app to `build/Stremio-mac-<version>.zip`. The zip is ad-hoc signed
+  and not notarized.
+- Install steps and measured power use in the README.
+
+[0.1.0]: https://github.com/SameetAsadullah/stremio-mac/releases/tag/v0.1.0
