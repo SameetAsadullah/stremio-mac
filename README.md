@@ -18,8 +18,7 @@ in that case. A player that draws only when a new video frame arrives measured a
 Version 0.1.0 opens stremio-web in a window and answers its shell protocol. Login persists across
 restarts, and links that open a new window go to the default browser. An mpv player shows video
 under the web view and draws only when a new frame arrives. The app also runs Stremio's streaming server
-as a child `node` process, or uses the one that already answers on port 11470. The web app cannot
-call that server yet (see [Known problem](#known-problem)), so Stremio streams do not play yet.
+as a child `node` process, or uses the one that already answers on port 11470. Torrent streams play through the server and mpv.
 
 ## Requirements
 
@@ -72,10 +71,13 @@ The download does not block the window.
   `~/Library/Logs/com.sameetasadullah.stremio-mac/server.log`.
 - `-server-port 11471` moves the server to another port, to test next to the official app.
 
-### Known problem
+### Web mirror
 
 `web.stremio.com` is an HTTPS page, and WebKit blocks it from calling `http://127.0.0.1:11470`
-(mixed content). Until the web app is loaded from a local origin, it cannot reach the server.
+(mixed content). So the app serves the web app itself from `http://127.0.0.1:11480/`, a loopback
+server that mirrors `web.stremio.com`. A localhost page may call the streaming server. The port
+is fixed so that the login survives restarts, and the mirror listens on `127.0.0.1` only. Links to
+`web.stremio.com` open in the app and other links open in the default browser.
 
 ## License
 
