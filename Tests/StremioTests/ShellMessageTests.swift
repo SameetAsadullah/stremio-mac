@@ -95,6 +95,15 @@ final class ShellMessageTests: XCTestCase {
         XCTAssertEqual(ShellMessage.signal("media-key"), #"{"args":["media-key",null],"type":1}"#)
     }
 
+    func testEncodesOpenSignals() {
+        XCTAssertEqual(
+            ShellMessage.openMedia(URL(string: "magnet:?xt=urn:btih:abc")!),
+            #"{"args":["open-media","magnet:?xt=urn:btih:abc"],"type":1}"#)
+        XCTAssertEqual(
+            ShellMessage.openTorrent(name: "a.torrent", data: Data("d4:infoe".utf8)),
+            #"{"args":["open-torrent",{"data":"ZDQ6aW5mb2U=","name":"a.torrent"}],"type":1}"#)
+    }
+
     func testEncodesPlayerEvents() {
         XCTAssertEqual(
             PlayerEvent.propertyChanged(name: "pause", data: .bool(true)).signal,

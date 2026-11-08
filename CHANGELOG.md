@@ -4,6 +4,12 @@ All notable changes are listed here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- `stremio://` and `magnet:` links and `.torrent` files open in the app.
+
 ## [0.1.0] - 2026-11-06
 
 ### Added
@@ -41,4 +47,5 @@ All notable changes are listed here. The format follows
   and not notarized.
 - Install steps and measured power use in the README.
 
+[Unreleased]: https://github.com/SameetAsadullah/stremio-mac/compare/v0.1.0...HEAD
 [0.1.0]: https://github.com/SameetAsadullah/stremio-mac/releases/tag/v0.1.0

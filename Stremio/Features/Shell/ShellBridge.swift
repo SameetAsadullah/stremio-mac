@@ -5,6 +5,8 @@ import WebKit
 final class ShellBridge: NSObject, WKScriptMessageHandler {
     static let handlerName = "shell"
     static let shellVersion = "0.1.0"
+    /// stremio-web refuses larger torrent files.
+    static let maxTorrentBytes = 16 * 1024 * 1024
 
     /// Defines `chrome.webview` over the WebKit message handler, which is the transport
     /// stremio-web looks for. `__shellDeliver` is how the app sends messages back.
@@ -40,6 +42,10 @@ final class ShellBridge: NSObject, WKScriptMessageHandler {
     private let streamingServerURL: URL?
     var onMediaMetadata: ((MediaMetadata) -> Void)?
     private var observers: [NSObjectProtocol] = []
+    /// stremio-web adds its `open-*` listeners before it calls `app-ready`, so links that arrive
+    /// earlier wait here.
+    private var webReady = false
+    private var pendingOpens: [String] = []
 
     init(webView: WKWebView, player: PlayerBackend, allowedOrigin: URL, streamingServerURL: URL?) {
         self.webView = webView
@@ -64,6 +70,23 @@ final class ShellBridge: NSObject, WKScriptMessageHandler {
         deliver(key.signal)
     }
 
+    /// Sends a `stremio://` or `magnet:` link, or a `.torrent` file, to stremio-web.
+    func open(_ url: URL) {
+        let message: String
+        if url.isFileURL {
+            let size = (try? url.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0
+            if (1...Self.maxTorrentBytes).contains(size), let data = try? Data(contentsOf: url) {
+                message = ShellMessage.openTorrent(name: url.lastPathComponent, data: data)
+            } else {
+                Log.shell.error("cannot read the torrent file \(url.lastPathComponent, privacy: .public)")
+                message = ShellMessage.signal("open-error", .string("Failed to open torrent file."))
+            }
+        } else {
+            message = ShellMessage.openMedia(url)
+        }
+        if webReady { deliver(message) } else { pendingOpens.append(message) }
+    }
+
     private func deliver(_ json: String) {
         let encoder = JSONEncoder()
         encoder.outputFormatting = .withoutEscapingSlashes
@@ -85,6 +108,7 @@ final class ShellBridge: NSObject, WKScriptMessageHandler {
             switch try ShellMessage.parse(text) {
             case .initialize:
                 Log.shell.info("INIT received")
+                webReady = false
                 deliver(ShellMessage.initReply(properties: Self.properties(streamingServerURL: streamingServerURL)))
                 Log.shell.info("INIT answered")
             case .invoke(let method):
@@ -99,6 +123,9 @@ final class ShellBridge: NSObject, WKScriptMessageHandler {
         switch method {
         case .appReady:
             Log.shell.info("app-ready")
+            webReady = true
+            pendingOpens.forEach(deliver)
+            pendingOpens.removeAll()
         case .quit:
             NSApp.terminate(nil)
         case .setVisibility(let fullscreen):

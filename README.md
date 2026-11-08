@@ -51,7 +51,8 @@ Mac features:
   with it, and minimizing the window pauses the video when stremio-web's "pause on minimize"
   setting is on.
 - Closing the window quits the app, so the streaming server always ends with it.
-- `stremio://` and `magnet:` links are not registered, so they keep opening the official app.
+- `stremio://` and `magnet:` links and `.torrent` files open in the app, as in the official app.
+  A link that arrives during launch waits until stremio-web is ready.
 
 ## Requirements
 

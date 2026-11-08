@@ -8,6 +8,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let wakeLock = DisplayWakeLock()
     private var nowPlaying: NowPlayingController?
     private var statsTimer: Timer?
+    private var bridge: ShellBridge?
+    /// Links that arrive before the window exists, as on a launch from a link.
+    private var pendingURLs: [URL] = []
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.mainMenu = MainMenu.make()
@@ -32,6 +35,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         self.window = window
         self.mpv = mpv
         let bridge = controller.bridge
+        self.bridge = bridge
+        for url in pendingURLs { bridge?.open(url) }
+        pendingURLs.removeAll()
         let nowPlaying = NowPlayingController(
             sendKey: { bridge?.send($0) },
             seek: { mpv?.seek(to: $0) })
@@ -56,6 +62,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         statsTimer = Timer.scheduledTimer(withTimeInterval: 10, repeats: true) { _ in
             mpv.logStats(draws: videoView.videoLayer.takeDrawCount(), seconds: 10)
         }
+    }
+
+    func application(_ application: NSApplication, open urls: [URL]) {
+        guard let bridge else {
+            pendingURLs += urls
+            return
+        }
+        urls.forEach(bridge.open)
+        window?.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
     }
 
     func applicationWillTerminate(_ notification: Notification) {

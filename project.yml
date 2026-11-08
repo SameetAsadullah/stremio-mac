@@ -28,6 +28,23 @@ targets:
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         LSMinimumSystemVersion: $(MACOSX_DEPLOYMENT_TARGET)
         NSPrincipalClass: NSApplication
+        CFBundleURLTypes:
+          - CFBundleURLName: Stremio
+            CFBundleURLSchemes: [stremio]
+          - CFBundleURLName: BitTorrent Magnet
+            CFBundleURLSchemes: [magnet]
+        CFBundleDocumentTypes:
+          - CFBundleTypeName: BitTorrent Document
+            CFBundleTypeRole: Viewer
+            LSItemContentTypes: [org.bittorrent.torrent]
+            LSHandlerRank: Alternate
+        UTImportedTypeDeclarations:
+          - UTTypeIdentifier: org.bittorrent.torrent
+            UTTypeDescription: BitTorrent Document
+            UTTypeConformsTo: [public.data]
+            UTTypeTagSpecification:
+              public.mime-type: application/x-bittorrent
+              public.filename-extension: [torrent]
     dependencies:
       - package: MPVKit
         product: MPVKit

@@ -112,6 +112,16 @@ enum ShellMessage {
             ]))
     }
 
+    /// Opens a `stremio://` or `magnet:` link in stremio-web.
+    static func openMedia(_ url: URL) -> String {
+        signal("open-media", .string(url.absoluteString))
+    }
+
+    /// Opens a `.torrent` file in stremio-web, which reads `data` as base64.
+    static func openTorrent(name: String, data: Data) -> String {
+        signal("open-torrent", .object(["name": .string(name), "data": .string(data.base64EncodedString())]))
+    }
+
     private static func encode(_ value: JSONValue) -> String {
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]
