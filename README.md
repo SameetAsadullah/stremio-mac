@@ -86,9 +86,18 @@ Or right-click the app and choose Open. The app runs on Apple Silicon only, with
 later.
 
 The app runs next to the official app. It has its own data folder, uses a server of the official
-app that already runs and does not register `stremio://` links. At first launch it downloads
-`server.js` once. The Stremio login is separate from the official app, so sign in again.
-Both apps have the name Stremio. In Spotlight, this app is the one in `~/Applications`.
+app that already runs and leaves links to the official app until you change the default. At first
+launch it downloads `server.js` once. The Stremio login is separate from the official app, so sign
+in again. Both apps have the name Stremio. In Spotlight, this app is the one in `~/Applications`.
+
+To open `stremio://` and `magnet:` links and `.torrent` files in this app instead of the official
+app, run:
+
+```bash
+make default
+```
+
+To go back, run `scripts/make-default.sh /Applications/Stremio.app`.
 
 ## Build
 

@@ -7,7 +7,7 @@ VERSION := $(shell sed -n 's/.*MARKETING_VERSION: "\(.*\)"/\1/p' project.yml)
 ZIP     := build/Stremio-mac-$(VERSION).zip
 SOURCES := Stremio Tests
 
-.PHONY: bootstrap generate build release install dist test format lint open run clean
+.PHONY: bootstrap generate build release install default dist test format lint open run clean
 
 bootstrap:
 	scripts/bootstrap.sh
@@ -25,6 +25,9 @@ release: bootstrap generate
 
 install: release
 	scripts/install.sh $(RELEASE_APP)
+
+default:
+	scripts/make-default.sh
 
 dist: release
 	rm -f $(ZIP)

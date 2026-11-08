@@ -9,6 +9,7 @@ All notable changes are listed here. The format follows
 ### Added
 
 - `stremio://` and `magnet:` links and `.torrent` files open in the app.
+- `make default` makes the app the default for these links and files.
 
 ## [0.1.0] - 2026-11-06
 
