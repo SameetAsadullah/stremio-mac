@@ -2,25 +2,43 @@
 
 [![CI](https://github.com/SameetAsadullah/stremio-mac/actions/workflows/ci.yml/badge.svg)](https://github.com/SameetAsadullah/stremio-mac/actions/workflows/ci.yml)
 ![Platform](https://img.shields.io/badge/platform-macOS%2014%2B-lightgrey)
+![Swift](https://img.shields.io/badge/Swift-5-orange)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 
 A personal Mac app that runs [stremio-web](https://github.com/Stremio/stremio-web) with an
 [mpv](https://mpv.io) player.
 
-The goal is lower battery use in fullscreen at 120 Hz. Measured on battery with a fullscreen
-1080p24 video at 120 Hz through the real web player, this app draws 5.81 W and an idle desktop
-draws 4.24 W. The official Stremio app draws 14 to 16 W in the same setup. The app draws 24 times
-per second and decodes in hardware with VideoToolbox.
-
 > [!IMPORTANT]
 > This is an unofficial, personal project. It is not affiliated with or endorsed by Stremio.
+> The app uses Stremio's own web app and Stremio's own streaming server (`server.js`), which it
+> downloads from Stremio at first launch. This repository contains only the Mac app that runs
+> them.
+
+## Why
+
+The official Stremio app for Mac (5.1.30) uses a lot of battery in fullscreen on a 120 Hz
+display. Its player redraws on every display refresh, also when the video has no new frame. This
+app redraws only when mpv has a new frame, so a 24 fps video draws 24 times per second. It decodes
+in hardware with VideoToolbox.
+
+Measured on a MacBook Pro (M4 Pro) on battery, with a fullscreen 1080p24 video at 120 Hz:
+
+| Setup | Battery draw |
+| --- | ---: |
+| Idle desktop | 4.24 W |
+| This app, real web player | 5.81 W |
+| Official Stremio 5.1.30 | 14 to 16 W |
+
+The cause and the fix are reported to Stremio in
+[stremio-bugs#2927](https://github.com/Stremio/stremio-bugs/issues/2927).
 
 ## Status
 
 Version 0.1.0 opens stremio-web in a window and answers its shell protocol. Login persists across
 restarts, and links that open a new window go to the default browser. An mpv player shows video
-under the web view and draws only when a new frame arrives. The app also runs Stremio's streaming server
-as a child `node` process, or uses the one that already answers on port 11470. Torrent streams play through the server and mpv.
+under the web view and draws only when a new frame arrives. The app also runs Stremio's
+streaming server as a child `node` process, or uses the one that already answers on port 11470.
+Torrent streams play through the server and mpv.
 
 Mac features:
 
@@ -69,6 +87,7 @@ later.
 The app runs next to the official app. It has its own data folder, uses a server of the official
 app that already runs and does not register `stremio://` links. At first launch it downloads
 `server.js` once. The Stremio login is separate from the official app, so sign in again.
+Both apps have the name Stremio. In Spotlight, this app is the one in `~/Applications`.
 
 ## Build
 
@@ -121,6 +140,11 @@ The download does not block the window.
 server that mirrors `web.stremio.com`. A localhost page may call the streaming server. The port
 is fixed so that the login survives restarts, and the mirror listens on `127.0.0.1` only. Links to
 `web.stremio.com` open in the app and other links open in the default browser.
+
+## Related
+
+[stremio-ios](https://github.com/SameetAsadullah/stremio-ios) runs Stremio with torrent
+streaming on an iPhone or iPad.
 
 ## License
 
