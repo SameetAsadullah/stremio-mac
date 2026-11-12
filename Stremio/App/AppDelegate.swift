@@ -16,7 +16,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.mainMenu = MainMenu.make()
         if !mirror.start() { Log.web.error("the web app cannot be served") }
         // The test host is this app; tests must not start a node process.
-        if ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] == nil { server.start() }
+        let runsServer = ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] == nil
+        if runsServer { server.start() }
         let mpv = MpvPlayerBackend()
         if mpv == nil { Log.player.error("mpv failed to start") }
         let videoView = mpv.map(MpvVideoView.init)
@@ -33,6 +34,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         controller.bridge?.observe(window)
         window.makeKeyAndOrderFront(nil)
         self.window = window
+        let server = server
+        Task { @MainActor in
+            if runsServer, await !server.waitUntilReady() {
+                Log.server.error("the server did not answer in time; loading the web app anyway")
+            }
+            controller.loadWebApp()
+        }
         self.mpv = mpv
         let bridge = controller.bridge
         self.bridge = bridge

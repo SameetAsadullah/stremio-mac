@@ -52,8 +52,7 @@ final class WebViewController: NSViewController {
         view = container
     }
 
-    override func viewDidLoad() {
-        super.viewDidLoad()
+    func loadWebApp() {
         webView.load(URLRequest(url: mirror.baseURL))
     }
 

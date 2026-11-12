@@ -24,6 +24,26 @@ final class StreamingServerConfigTests: XCTestCase {
         XCTAssertEqual(environment["HLS_V2_DISABLED"], "1")
     }
 
+    func testPollStopsWhenTheCheckPasses() async {
+        var calls = 0
+        let ready = await StreamingServerConfig.poll(timeout: 5, interval: 0.01) {
+            calls += 1
+            return calls == 3
+        }
+        XCTAssertTrue(ready)
+        XCTAssertEqual(calls, 3)
+    }
+
+    func testPollGivesUpAfterTheTimeout() async {
+        var calls = 0
+        let ready = await StreamingServerConfig.poll(timeout: 0.05, interval: 0.01) {
+            calls += 1
+            return false
+        }
+        XCTAssertFalse(ready)
+        XCTAssertGreaterThan(calls, 1)
+    }
+
     func testArguments() {
         XCTAssertEqual(StreamingServerConfig.arguments(preload: "/p.js", script: "/s.js"), ["-r", "/p.js", "/s.js"])
     }

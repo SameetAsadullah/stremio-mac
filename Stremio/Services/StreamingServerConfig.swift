@@ -68,6 +68,23 @@ enum StreamingServerConfig {
         return json["values"] is [String: Any]
     }
 
+    /// stremio-web checks the server only when the page loads, so the app waits this long for node
+    /// before it loads the page anyway.
+    static let readyTimeout: TimeInterval = 10
+    static let readyPollInterval: TimeInterval = 0.2
+
+    /// Calls `check` until it returns true or `timeout` passes. Returns the last result.
+    static func poll(
+        timeout: TimeInterval, interval: TimeInterval, check: () async -> Bool
+    ) async -> Bool {
+        let deadline = Date().addingTimeInterval(timeout)
+        while true {
+            if await check() { return true }
+            if Date() >= deadline { return false }
+            try? await Task.sleep(nanoseconds: UInt64(interval * 1_000_000_000))
+        }
+    }
+
     /// Seconds to wait before restart number `restart` (1 is the first). `nil` means give up.
     static func restartDelay(restart: Int) -> TimeInterval? {
         switch restart {

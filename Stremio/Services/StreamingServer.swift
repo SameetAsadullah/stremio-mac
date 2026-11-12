@@ -42,6 +42,13 @@ final class StreamingServer: @unchecked Sendable {
         }
     }
 
+    /// Returns true when the server answers within `timeout`.
+    func waitUntilReady(timeout: TimeInterval = StreamingServerConfig.readyTimeout) async -> Bool {
+        await StreamingServerConfig.poll(timeout: timeout, interval: StreamingServerConfig.readyPollInterval) {
+            await isAlreadyRunning()
+        }
+    }
+
     func isAlreadyRunning() async -> Bool {
         var request = URLRequest(url: baseURL.appendingPathComponent("settings"))
         request.timeoutInterval = 2
