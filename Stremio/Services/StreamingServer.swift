@@ -2,7 +2,8 @@ import Foundation
 
 /// Runs Stremio's streaming server (server.js) as a child node process, or reuses a server that
 /// already answers on the port, such as the official app's.
-final class StreamingServer {
+/// Sendable because its mutable state is only touched on `queue`.
+final class StreamingServer: @unchecked Sendable {
     let port: Int
     var baseURL: URL { StreamingServerConfig.baseURL(port: port) }
 
